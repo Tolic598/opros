@@ -4,7 +4,7 @@ from aiogram.contrib.middlewares.logging import LoggingMiddleware
 from aiogram.types import Poll, PollType
 
 # Вставьте сюда ваш токен
-TOKEN = "5018144842:AAHmknEVURWrdtgLXJ6d4ol9PVlYwEvLN2w"
+TOKEN = "5556147625:AAGuKsc7MqGGodi2vScq7Wp7C2ssXZm1gsA"
 
 # Инициализация бота и диспетчера
 bot = Bot(token=TOKEN)
