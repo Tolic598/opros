@@ -31,7 +31,7 @@ async def create_poll(message: types.Message):
             options=options,
             correct_option_id=0  # Номер правильного варианта (в данном случае - первый)
         )
-        await bot.send_poll(chat_id=message.chat.id, poll=poll, disable_notification=True)
+        await bot.send_poll(chat_id=message.chat.id, **poll.export())
     else:
         await message.reply("Извините, максимальное количество вариантов для опроса - 32.")
 
