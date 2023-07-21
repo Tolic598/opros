@@ -31,7 +31,7 @@ async def create_poll(message: types.Message):
             options=options,
             correct_option_id=0  # Номер правильного варианта (в данном случае - первый)
         )
-        await message.reply_poll(poll=poll, disable_notification=True)
+        await message.send_poll(poll=poll, disable_notification=True)
     else:
         await message.reply("Извините, максимальное количество вариантов для опроса - 32.")
 
