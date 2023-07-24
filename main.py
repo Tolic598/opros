@@ -1,4 +1,3 @@
-
 import logging
 import asyncio
 from aiogram import Bot, Dispatcher, types
@@ -41,7 +40,8 @@ async def create_poll(message: types.Message):
 
     # Отправляем опрос пользователю
     try:
-        sent_poll = await message.answer_poll(poll=poll, is_anonymous=False)
+        sent_poll = await bot.send_poll(chat_id=message.chat.id, question=poll.question, options=poll.options,
+                                        type=poll.type, correct_option_id=poll.correct_option_id, is_anonymous=False)
         logging.info(f"Опрос создан с ID: {sent_poll.poll.id}")
     except Exception as e:
         logging.error(f"Ошибка при создании опроса: {e}")
