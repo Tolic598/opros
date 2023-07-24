@@ -68,7 +68,7 @@ async def process_option2(message: types.Message, state: FSMContext):
         poll = types.Poll(
             question=data["question"],
             options=[data["option1"], data["option2"]],
-            type=types.PollType.quiz,  # Здесь можно выбрать тип опроса (quiz или regular)
+            type=types.PollType.QUIZ,  # Здесь можно выбрать тип опроса (QUIZ или REGULAR)
             correct_option_id=0,  # Устанавливаем номер правильного варианта ответа (0 - первый вариант)
             explanation="Это объяснение правильного ответа.",
         )
@@ -78,6 +78,7 @@ async def process_option2(message: types.Message, state: FSMContext):
 
     # Сбрасываем состояние FSM
     await state.finish()
+
 
 if __name__ == "__main__":
     from aiogram import executor
