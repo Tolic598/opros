@@ -25,8 +25,11 @@ dp.middleware.setup(LoggingMiddleware())
 # Класс состояний опроса
 class CreatePoll(StatesGroup):
     question = State()
-    option1 = State()
-    option2 = State()
+    options = State()
+
+
+# Количество опросов, которые можно создать
+MAX_POLLS = 32
 
 
 # Обработчик команды /start
@@ -44,30 +47,24 @@ async def process_question(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data["question"] = message.text
 
-    await message.answer("Введите первый вариант ответа:")
-    await CreatePoll.option1.set()
+    await message.answer("Введите варианты ответов через запятую:")
+    await CreatePoll.options.set()
 
 
-# Обработчик первого варианта ответа
-@dp.message_handler(state=CreatePoll.option1)
-async def process_option1(message: types.Message, state: FSMContext):
+# Обработчик опций ответов
+@dp.message_handler(state=CreatePoll.options)
+async def process_options(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
-        data["option1"] = message.text
+        data["options"] = [option.strip() for option in message.text.split(",")]
 
-    await message.answer("Введите второй вариант ответа:")
-    await CreatePoll.option2.set()
-
-
-# Обработчик второго варианта ответа и создание опроса
-@dp.message_handler(state=CreatePoll.option2)
-async def process_option2(message: types.Message, state: FSMContext):
-    async with state.proxy() as data:
-        data["option2"] = message.text
+        if len(data["options"]) < 2:
+            await message.answer("Укажите как минимум два варианта ответов.")
+            return
 
         # Создаем объект опроса
         poll = types.Poll(
             question=data["question"],
-            options=[data["option1"], data["option2"]],
+            options=data["options"],
             type=types.PollType.QUIZ,  # Здесь можно выбрать тип опроса (QUIZ или REGULAR)
             correct_option_id=0,  # Устанавливаем номер правильного варианта ответа (0 - первый вариант)
             explanation="Это объяснение правильного ответа.",
@@ -85,7 +82,6 @@ async def process_option2(message: types.Message, state: FSMContext):
 
     # Сбрасываем состояние FSM
     await state.finish()
-
 
 
 if __name__ == "__main__":
