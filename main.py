@@ -74,10 +74,18 @@ async def process_option2(message: types.Message, state: FSMContext):
         )
 
         # Отправляем опрос
-        await message.answer_poll(poll=poll)
+        await message.bot.send_poll(
+            chat_id=message.chat.id,
+            question=poll.question,
+            options=poll.options,
+            type=poll.type,
+            correct_option_id=poll.correct_option_id,
+            explanation=poll.explanation,
+        )
 
     # Сбрасываем состояние FSM
     await state.finish()
+
 
 
 if __name__ == "__main__":
