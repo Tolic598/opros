@@ -1,94 +1,65 @@
+
 import logging
 import asyncio
 from aiogram import Bot, Dispatcher, types
-from aiogram.contrib.middlewares.logging import LoggingMiddleware
 from aiogram.types import ParseMode
-from aiogram.contrib.middlewares.logging import LoggingMiddleware
-from aiogram.dispatcher.middlewares import BaseMiddleware
-from aiogram.dispatcher import FSMContext
-from aiogram.dispatcher.filters.state import State, StatesGroup
-from aiogram.contrib.fsm_storage.memory import MemoryStorage
+from aiogram.utils import executor
 
-# Здесь необходимо указать токен вашего бота
-BOT_TOKEN = "5018144842:AAHmknEVURWrdtgLXJ6d4ol9PVlYwEvLN2w"
+# Установите ваш токен Telegram бота
+BOT_TOKEN = '5018144842:AAHmknEVURWrdtgLXJ6d4ol9PVlYwEvLN2w'
+
+logging.basicConfig(level=logging.INFO)
 
 # Инициализация бота и диспетчера
 bot = Bot(token=BOT_TOKEN)
-storage = MemoryStorage()
-dp = Dispatcher(bot, storage=storage)
-
-# Включаем логирование
-logging.basicConfig(level=logging.INFO)
-dp.middleware.setup(LoggingMiddleware())
+dp = Dispatcher(bot)
 
 
-# Класс состояний опроса
-class CreatePoll(StatesGroup):
-    question = State()
-    options = State()
+# Обработчик команды /create_poll
+@dp.message_handler(commands=['create_poll'])
+async def create_poll(message: types.Message):
+    # Вопрос для опроса
+    question = "Выберите ваш любимый вариант:"
+    # Варианты ответов для опроса
+    options = [
+        "Вариант 1", "Вариант 2", "Вариант 3", "Вариант 4", "Вариант 5",
+        "Вариант 6", "Вариант 7", "Вариант 8", "Вариант 9", "Вариант 10",
+        "Вариант 11", "Вариант 12", "Вариант 13", "Вариант 14", "Вариант 15",
+        "Вариант 16", "Вариант 17", "Вариант 18", "Вариант 19", "Вариант 20",
+        "Вариант 21", "Вариант 22", "Вариант 23", "Вариант 24", "Вариант 25",
+        "Вариант 26", "Вариант 27", "Вариант 28", "Вариант 29", "Вариант 30",
+        "Вариант 31", "Вариант 32",
+    ]
 
+    # Создаем объект опроса
+    poll = types.Poll(
+        question=question,
+        options=options,
+        type=types.PollType.QUIZ,
+        correct_option_id=0  # Номер варианта, который считается верным (начиная с 0)
+    )
 
-# Максимальное количество опций для опроса
-MAX_OPTIONS = 10
+    # Отправляем опрос пользователю
+    try:
+        sent_poll = await message.answer_poll(poll=poll, is_anonymous=False)
+        logging.info(f"Опрос создан с ID: {sent_poll.poll.id}")
+    except Exception as e:
+        logging.error(f"Ошибка при создании опроса: {e}")
+        await message.answer("Произошла ошибка при создании опроса. Пожалуйста, попробуйте позже.")
 
 
 # Обработчик команды /start
-@dp.message_handler(commands=["start"])
-async def cmd_start(message: types.Message):
-    await message.answer(
-        "Привет! Я бот для создания опросов. Введите вопрос для опроса:"
-    )
-    await CreatePoll.question.set()
+@dp.message_handler(commands=['start'])
+async def start(message: types.Message):
+    await message.reply("Привет! Я бот для создания опросов. Используйте команду /create_poll, чтобы создать опрос.")
 
 
-# Обработчик вопроса от пользователя
-@dp.message_handler(state=CreatePoll.question)
-async def process_question(message: types.Message, state: FSMContext):
-    async with state.proxy() as data:
-        data["question"] = message.text
-
-    await message.answer("Введите варианты ответов через запятую:")
-    await CreatePoll.options.set()
+# Обработчик неизвестных команд
+@dp.message_handler()
+async def unknown_command(message: types.Message):
+    await message.reply("Извините, я не понимаю данную команду. Попробуйте другую или используйте /create_poll.")
 
 
-# Обработчик опций ответов
-@dp.message_handler(state=CreatePoll.options)
-async def process_options(message: types.Message, state: FSMContext):
-    async with state.proxy() as data:
-        options = [option.strip() for option in message.text.split(",")]
-
-        if len(options) < 2:
-            await message.answer("Укажите как минимум два варианта ответов.")
-            return
-
-        if len(options) > MAX_OPTIONS:
-            await message.answer(f"Максимальное количество опций: {MAX_OPTIONS}.")
-            return
-
-        # Создаем объект опроса
-        poll = types.Poll(
-            question=data["question"],
-            options=options,
-            type=types.PollType.QUIZ,  # Здесь можно выбрать тип опроса (QUIZ или REGULAR)
-            correct_option_id=0,  # Устанавливаем номер правильного варианта ответа (0 - первый вариант)
-            explanation="Это объяснение правильного ответа.",
-        )
-
-        # Отправляем опрос
-        await message.bot.send_poll(
-            chat_id=message.chat.id,
-            question=poll.question,
-            options=poll.options,
-            type=poll.type,
-            correct_option_id=poll.correct_option_id,
-            explanation=poll.explanation,
-        )
-
-    # Сбрасываем состояние FSM
-    await state.finish()
-
-
-if __name__ == "__main__":
-    from aiogram import executor
-
-    executor.start_polling(dp, skip_updates=True)
+if __name__ == '__main__':
+    loop = asyncio.get_event_loop()
+    executor.start_polling(dp, loop=loop, skip_updates=True)
