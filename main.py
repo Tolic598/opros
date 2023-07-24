@@ -28,8 +28,8 @@ class CreatePoll(StatesGroup):
     options = State()
 
 
-# Количество опросов, которые можно создать
-MAX_POLLS = 32
+# Максимальное количество опций для опроса
+MAX_OPTIONS = 10
 
 
 # Обработчик команды /start
@@ -55,16 +55,20 @@ async def process_question(message: types.Message, state: FSMContext):
 @dp.message_handler(state=CreatePoll.options)
 async def process_options(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
-        data["options"] = [option.strip() for option in message.text.split(",")]
+        options = [option.strip() for option in message.text.split(",")]
 
-        if len(data["options"]) < 2:
+        if len(options) < 2:
             await message.answer("Укажите как минимум два варианта ответов.")
+            return
+
+        if len(options) > MAX_OPTIONS:
+            await message.answer(f"Максимальное количество опций: {MAX_OPTIONS}.")
             return
 
         # Создаем объект опроса
         poll = types.Poll(
             question=data["question"],
-            options=data["options"],
+            options=options,
             type=types.PollType.QUIZ,  # Здесь можно выбрать тип опроса (QUIZ или REGULAR)
             correct_option_id=0,  # Устанавливаем номер правильного варианта ответа (0 - первый вариант)
             explanation="Это объяснение правильного ответа.",
