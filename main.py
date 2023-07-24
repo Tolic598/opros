@@ -79,7 +79,6 @@ async def process_option2(message: types.Message, state: FSMContext):
     # Сбрасываем состояние FSM
     await state.finish()
 
-
 if __name__ == "__main__":
     from aiogram import executor
 
